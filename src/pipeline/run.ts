@@ -1,5 +1,6 @@
 import path from "node:path";
-import { FORMATS, outputSize } from "@/core/formats";
+import { existsSync, readdirSync, rmSync } from "node:fs";
+import { masterSize, outputSize } from "@/core/formats";
 import type { Engine, GenerationRequest, Storyboard } from "@/core/types";
 import { fillTemplate, resolveTemplate } from "@/industries";
 import { crossfadeClips, normalizeClip, renderFormat, type CaptionCue, type EndCard } from "@/media/compose";
@@ -56,7 +57,7 @@ async function execute(reporter: JobReporter, request: GenerationRequest): Promi
   const providers = getProviders();
   const plan = planShots(request.engine, request.durationSec);
   const masterRatio = pickMasterRatio(request.aspectRatios);
-  const masterCanvas = FORMATS[masterRatio];
+  const masterCanvas = masterSize(masterRatio);
 
   // --- 1. Storyboard -------------------------------------------------------
   reporter.startStep(STEP.script);
@@ -279,6 +280,30 @@ async function execute(reporter: JobReporter, request: GenerationRequest): Promi
     reporter.addOutput({ aspectRatio: ratio, kind: request.engine, path: toStorageRelative(output), width, height });
   }
   reporter.finishStep(STEP.formats, `${request.aspectRatios.length} format(s) exported`);
+
+  discardIntermediates(root);
+}
+
+/**
+ * Raw clips, normalised clips and the master are the bulk of a job on disk and are never
+ * served once the exports exist. Keyframes and character sheets stay - the UI links to them.
+ * Cleanup must never turn a finished render into a failure, so problems here are swallowed.
+ */
+function discardIntermediates(root: string): void {
+  try {
+    rmSync(path.join(root, "work"), { recursive: true, force: true });
+    rmSync(path.join(root, "render"), { recursive: true, force: true });
+    const shotsDir = path.join(root, "gen", "shots");
+    if (!existsSync(shotsDir)) return;
+    for (const shot of readdirSync(shotsDir)) {
+      const dir = path.join(shotsDir, shot);
+      for (const file of readdirSync(dir)) {
+        if (file.startsWith("clip.")) rmSync(path.join(dir, file), { force: true });
+      }
+    }
+  } catch {
+    // A job that rendered correctly is still a success even if its scratch files linger.
+  }
 }
 
 /** Client-supplied ids become directory names, so strip anything a path could use. */

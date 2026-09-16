@@ -20,11 +20,31 @@ export const ASPECT_RATIOS = Object.keys(FORMATS) as AspectRatio[];
 /** GIFs are rendered smaller - file size matters more than resolution. */
 const GIF_LONG_EDGE = 720;
 
+/**
+ * Small hosts cannot encode 1080p without running out of memory. RENDER_SCALE shrinks every
+ * render proportionally (0.67 gives 720p-class output) without changing any layout maths,
+ * because every size in the compositor is derived from the canvas.
+ */
+function renderScale(): number {
+  const raw = Number(process.env.RENDER_SCALE);
+  return Number.isFinite(raw) && raw >= 0.3 && raw <= 1 ? raw : 1;
+}
+
+/** Size of the single master render that every format is reframed from. */
+export function masterSize(ratio: AspectRatio): { width: number; height: number } {
+  const { width, height } = FORMATS[ratio];
+  const scale = renderScale();
+  return { width: even(width * scale), height: even(height * scale) };
+}
+
 export function outputSize(ratio: AspectRatio, engine: Engine): { width: number; height: number } {
   const { width, height } = FORMATS[ratio];
-  if (engine !== "gif") return { width, height };
-  const scale = GIF_LONG_EDGE / Math.max(width, height);
-  // Even dimensions keep every encoder happy.
+  if (engine === "gif") {
+    const scale = GIF_LONG_EDGE / Math.max(width, height);
+    // Even dimensions keep every encoder happy.
+    return { width: even(width * scale), height: even(height * scale) };
+  }
+  const scale = renderScale();
   return { width: even(width * scale), height: even(height * scale) };
 }
 
