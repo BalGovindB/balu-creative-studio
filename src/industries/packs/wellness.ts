@@ -1,0 +1,71 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "wellness",
+  name: "Wellness Products",
+  emoji: "🌿",
+  description: "Supplements, skincare, fitness and self-care routines.",
+  audience: "Health-conscious adults building daily routines",
+  tone: "Calm, uplifting, authentic. Lifestyle over hype.",
+  visualStyle: "Airy bright spaces, soft pastel and green tones, natural textures, morning light, clean product close-ups",
+  characters: [
+    { id: "yoga-enthusiast", name: "Yoga enthusiast", description: "Adult in their late 20s in athleisure, serene expression, on a yoga mat" },
+    { id: "busy-professional", name: "Busy professional", description: "Professional in their 30s, smart casual, energetic, holding a water bottle" },
+    { id: "nutritionist", name: "Nutritionist", description: "Nutrition coach in their 40s, light-coloured clothing, warm and credible" },
+  ],
+  scenes: [
+    { id: "sunlit-studio", name: "Sunlit yoga studio", description: "Minimal wooden-floor studio with plants and large windows at sunrise" },
+    { id: "kitchen-counter", name: "Morning kitchen", description: "Bright kitchen counter with fruits, glass of water, product jar" },
+    { id: "park-trail", name: "Park trail", description: "Green park jogging trail in early morning mist" },
+  ],
+  templates: [
+    {
+      id: "daily-ritual",
+      name: "Daily ritual",
+      goal: "awareness",
+      description: "Place the product inside a feel-good morning routine.",
+      brief: "Show {{product}} as part of a calm daily routine for {{audience}}. Highlight: {{offer}}.",
+      variables: [v.product("e.g. Plant Protein Blend"), v.audience("e.g. working professionals"), v.offer("e.g. 25g protein, no added sugar")],
+      structure: ["Hook: alarm-free sunrise", "Routine: movement + product moment", "Product close-up with key benefit", "Energised day", "CTA"],
+      defaultCta: "Start your ritual",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["busy-professional"],
+      suggestedSceneId: "kitchen-counter",
+    },
+    {
+      id: "expert-tip",
+      name: "Expert tip",
+      goal: "lead-generation",
+      description: "A coach shares one useful tip, then introduces the product.",
+      brief: "A nutrition coach gives {{audience}} one practical tip and introduces {{product}}. Offer: {{offer}}.",
+      variables: [v.product("e.g. Sleep Support Gummies"), v.audience("e.g. people with irregular sleep"), v.offer("e.g. Free consultation with first order")],
+      structure: ["Hook: common mistake", "Coach's tip", "Where the product fits", "CTA"],
+      defaultCta: "Book a free consult",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["nutritionist", "yoga-enthusiast"],
+      suggestedSceneId: "sunlit-studio",
+    },
+    {
+      id: "subscription-offer",
+      name: "Subscribe & save",
+      goal: "conversion",
+      description: "Convert one-time buyers to subscribers.",
+      brief: "Encourage {{audience}} to subscribe to {{product}} with {{offer}}.",
+      variables: [v.product("e.g. Daily Greens"), v.audience("e.g. existing customers"), v.offer("e.g. Save 20% on monthly subscription")],
+      structure: ["Hook: running out of product", "Auto-delivery arrives on time", "Savings callout", "CTA"],
+      defaultCta: "Subscribe & save",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["busy-professional"],
+      suggestedSceneId: "kitchen-counter",
+    },
+  ],
+  compliance: {
+    disclaimer: "This product is not intended to diagnose, treat, cure or prevent any disease.",
+    rules: [
+      "No medical or disease-cure claims; no before/after body transformations.",
+      "No unrealistic weight-loss or timeline promises.",
+      "Benefit claims must come only from the provided offer text.",
+    ],
+  },
+});

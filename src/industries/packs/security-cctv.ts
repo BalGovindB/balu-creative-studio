@@ -1,0 +1,71 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "security-cctv",
+  name: "CCTV / Security",
+  emoji: "📹",
+  description: "Home and business surveillance, smart cameras, guarding services.",
+  audience: "Homeowners, shop owners, housing societies, facility managers",
+  tone: "Confident, protective, reassuring. Control and peace of mind - not fear.",
+  visualStyle: "Clean tech aesthetic, cool blue accents with warm interiors, smartphone live-view UI, night-vision look for contrast",
+  characters: [
+    { id: "homeowner", name: "Homeowner", description: "Homeowner in their 30s checking a live camera feed on a smartphone, relaxed" },
+    { id: "shop-owner", name: "Shop owner", description: "Retail shop owner in their 40s, confident, standing by the counter" },
+    { id: "technician", name: "Installation technician", description: "Technician in branded polo and tool belt installing a dome camera" },
+  ],
+  scenes: [
+    { id: "home-entrance", name: "Home entrance", description: "Modern home front door with a smart doorbell camera, evening lights" },
+    { id: "retail-store", name: "Retail store", description: "Well-lit retail store aisle with discreet ceiling cameras" },
+    { id: "control-room", name: "Monitoring room", description: "Compact monitoring room with multi-camera screens, blue ambient light" },
+  ],
+  templates: [
+    {
+      id: "watch-from-anywhere",
+      name: "Watch from anywhere",
+      goal: "conversion",
+      description: "Live view on the phone while away.",
+      brief: "Show {{audience}} watching their space live with {{product}} while away. Offer: {{offer}}.",
+      variables: [v.product("e.g. SmartEye 4K Wi-Fi Camera"), v.audience("e.g. working parents"), v.offer("e.g. Free installation this month")],
+      structure: ["Hook: away from home, a moment of doubt", "Open app - live HD view", "Everything's fine, smile", "Feature highlight", "CTA"],
+      defaultCta: "Book free installation",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["homeowner"],
+      suggestedSceneId: "home-entrance",
+    },
+    {
+      id: "business-protection",
+      name: "Protect your business",
+      goal: "lead-generation",
+      description: "B2B surveillance package for shops and societies.",
+      brief: "Pitch {{product}} to {{audience}} for round-the-clock protection. Highlight: {{offer}}.",
+      variables: [v.product("e.g. 8-camera business kit with monitoring"), v.audience("e.g. retail shop owners"), v.offer("e.g. 24x7 monitoring from ₹999/month")],
+      structure: ["Hook: closing the shop at night", "Cameras + monitoring team", "Alert on phone", "CTA"],
+      defaultCta: "Get a free site survey",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["shop-owner", "technician"],
+      suggestedSceneId: "retail-store",
+    },
+    {
+      id: "amc-upgrade",
+      name: "AMC / upgrade to HD",
+      goal: "upsell",
+      description: "Upgrade older analog systems or renew maintenance.",
+      brief: "Encourage existing customers with older systems to upgrade to {{product}}. Offer: {{offer}}.",
+      variables: [v.product("e.g. 4K night-vision cameras"), v.offer("e.g. Exchange old cameras and save 25%")],
+      structure: ["Hook: blurry old footage vs crisp 4K", "Technician upgrade", "Crystal-clear night view", "CTA"],
+      defaultCta: "Upgrade today",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["technician", "homeowner"],
+      suggestedSceneId: "control-room",
+    },
+  ],
+  compliance: {
+    disclaimer: "Features vary by model. Installation subject to site feasibility.",
+    rules: [
+      "Do not depict violent crime, weapons or break-ins in progress - imply risk subtly.",
+      "Do not show cameras pointed into neighbours' private spaces.",
+      "Do not claim to prevent all crime.",
+    ],
+  },
+});

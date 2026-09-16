@@ -1,0 +1,72 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "credit-recovery",
+  name: "Credit Recovery",
+  emoji: "💳",
+  description: "Respectful repayment reminders, settlements and restructuring offers.",
+  audience: "Borrowers with overdue EMIs, credit card dues or personal loans",
+  tone: "Respectful, non-judgemental, solution-oriented. Dignity first - never threatening.",
+  visualStyle: "Calm neutral palette, soft daylight, uncluttered spaces, optimistic mood",
+  characters: [
+    { id: "borrower", name: "Borrower", description: "Working adult in their 30s, everyday office clothes, thoughtful then relieved expression, looking at phone" },
+    { id: "support-agent", name: "Support agent", description: "Friendly customer-support professional with headset, calm reassuring smile" },
+    { id: "small-business-owner", name: "Small business owner", description: "Shop owner in their 40s behind a counter, practical clothing, hopeful" },
+  ],
+  scenes: [
+    { id: "home-desk", name: "Home desk", description: "Tidy home desk with laptop and phone, morning light through window" },
+    { id: "support-center", name: "Support center", description: "Bright friendly customer-support office, plants, open layout" },
+    { id: "local-shop", name: "Local shop", description: "Neat neighbourhood retail shop interior, daytime" },
+  ],
+  templates: [
+    {
+      id: "gentle-payment-reminder",
+      name: "Gentle payment reminder",
+      goal: "recovery",
+      description: "A friendly nudge that makes paying easy.",
+      brief: "Remind {{audience}} about their pending dues on {{product}} in a friendly way. Show how easy it is to pay. Offer: {{offer}}.",
+      variables: [v.product("e.g. Personal Loan EMI"), v.audience("e.g. customers 1-30 days overdue"), v.offer("e.g. Pay via UPI in one tap")],
+      structure: ["Hook: everyday moment + phone notification", "Reassure: we're here to help", "Show easy payment steps", "Benefit: protect your credit score", "CTA"],
+      defaultCta: "Pay now in one tap",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["borrower"],
+      suggestedSceneId: "home-desk",
+    },
+    {
+      id: "settlement-offer",
+      name: "One-time settlement offer",
+      goal: "recovery",
+      description: "Present a time-bound settlement or restructuring option.",
+      brief: "Tell {{audience}} about a settlement option for {{product}}. Frame it as a fresh start. Offer details: {{offer}}.",
+      variables: [v.product("e.g. Credit Card dues"), v.audience("e.g. customers 90+ days overdue"), v.offer("e.g. Settle with up to 40% waiver till 30 Sept")],
+      structure: ["Hook: feeling of a fresh start", "Agent explains option respectfully", "Clear steps to accept", "CTA with deadline"],
+      defaultCta: "Talk to us today",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["borrower", "support-agent"],
+      suggestedSceneId: "support-center",
+    },
+    {
+      id: "emi-restructure",
+      name: "EMI restructuring support",
+      goal: "retention",
+      description: "Help struggling borrowers with lower EMI options.",
+      brief: "Let {{audience}} know {{product}} can be restructured to a manageable EMI. Highlight: {{offer}}.",
+      variables: [v.product("e.g. Business Loan"), v.audience("e.g. small business owners"), v.offer("e.g. Lower EMIs with extended tenure")],
+      structure: ["Hook: business owner facing a tight month", "We understand", "Restructure option explained simply", "Relief", "CTA"],
+      defaultCta: "Check your options",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["small-business-owner", "support-agent"],
+      suggestedSceneId: "local-shop",
+    },
+  ],
+  compliance: {
+    disclaimer: "Subject to eligibility and lender terms.",
+    rules: [
+      "Never threaten, shame, or imply legal action, police, or public embarrassment.",
+      "Never show family members or neighbours being contacted.",
+      "Do not mention specific amounts owed; use only the offer text provided.",
+      "Always present the borrower with dignity and a clear, voluntary way forward.",
+    ],
+  },
+});

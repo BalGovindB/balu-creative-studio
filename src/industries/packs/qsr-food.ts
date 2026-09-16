@@ -1,0 +1,71 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "qsr-food",
+  name: "QSR / Food Brands",
+  emoji: "🍔",
+  description: "Crave-worthy menu launches, combos and delivery offers.",
+  audience: "Students, young professionals, families ordering in",
+  tone: "Energetic, playful, appetite-driven. Short punchy lines.",
+  visualStyle: "Macro food photography, glossy highlights, steam and sizzle, vibrant saturated colours, fast dynamic cuts",
+  characters: [
+    { id: "college-friends", name: "Group of friends", description: "Three college friends in their early 20s, casual streetwear, laughing and sharing food" },
+    { id: "delivery-rider", name: "Delivery rider", description: "Delivery rider in branded jacket and helmet, cheerful, holding an insulated bag" },
+    { id: "chef", name: "Chef", description: "Chef in a clean white uniform and cap, confident, plating food" },
+    { id: "office-worker", name: "Office worker", description: "Young professional at desk, smart casual, excitedly opening a food order" },
+  ],
+  scenes: [
+    { id: "restaurant-counter", name: "Restaurant counter", description: "Modern quick-service restaurant counter, menu boards, warm lighting" },
+    { id: "kitchen-closeup", name: "Kitchen close-up", description: "Stainless-steel kitchen, flames and sizzle, dramatic lighting" },
+    { id: "hostel-room", name: "Hangout / hostel room", description: "Cosy hangout room with bean bags, evening lights, snacks on a table" },
+  ],
+  templates: [
+    {
+      id: "new-menu-launch",
+      name: "New menu item launch",
+      goal: "awareness",
+      description: "Hero reveal of a new dish.",
+      brief: "Launch {{product}} with a mouth-watering hero reveal for {{audience}}. Launch offer: {{offer}}.",
+      variables: [v.product("e.g. Peri Peri Crunch Burger"), v.audience("e.g. college students"), v.offer("e.g. Launch price ₹149")],
+      structure: ["Hook: extreme close-up sizzle", "Build: ingredients falling into place", "Hero shot of the dish", "Reaction bite", "CTA with offer"],
+      defaultCta: "Order now",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["chef", "college-friends"],
+      suggestedSceneId: "kitchen-closeup",
+    },
+    {
+      id: "combo-deal",
+      name: "Combo / meal deal",
+      goal: "conversion",
+      description: "Drive orders with a value combo.",
+      brief: "Promote the {{product}} combo to {{audience}} with a strong value message: {{offer}}.",
+      variables: [v.product("e.g. Friends Feast Box"), v.audience("e.g. groups of friends"), v.offer("e.g. 4 burgers + 2 fries + 4 drinks at ₹499")],
+      structure: ["Hook: hungry friends", "Box opens - everything revealed", "Price punch", "CTA"],
+      defaultCta: "Grab the combo",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["college-friends"],
+      suggestedSceneId: "hostel-room",
+    },
+    {
+      id: "delivery-speed",
+      name: "Fast delivery promise",
+      goal: "conversion",
+      description: "Hot food at the door, fast.",
+      brief: "Show {{product}} arriving hot and fast for {{audience}} in {{city}}. Offer: {{offer}}.",
+      variables: [v.product("e.g. Pizza delivery"), v.audience("e.g. office workers"), v.city(), v.offer("e.g. 30-minute delivery or free")],
+      structure: ["Hook: craving at desk", "Rider on the move", "Doorstep handover, steam rising", "CTA"],
+      defaultCta: "Order on the app",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["office-worker", "delivery-rider"],
+      suggestedSceneId: "restaurant-counter",
+    },
+  ],
+  compliance: {
+    disclaimer: "Images for representation only. T&C apply.",
+    rules: [
+      "Do not make health or nutrition claims unless given in the offer text.",
+      "Do not depict unsafe riding (no phone use while riding, helmet always on).",
+    ],
+  },
+});

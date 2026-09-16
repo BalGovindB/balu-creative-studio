@@ -1,0 +1,72 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "staffing",
+  name: "Manpower / Staffing",
+  emoji: "🧑‍💼",
+  description: "Hiring drives for candidates and staffing solutions for employers.",
+  audience: "Job seekers (blue and white collar) and HR / operations heads",
+  tone: "Aspirational, inclusive, direct. Clear next step.",
+  visualStyle: "Real workplaces, diverse teams, confident eye-level framing, bright corporate colour grading",
+  characters: [
+    { id: "job-seeker", name: "Job seeker", description: "Young graduate in their early 20s, neat formal shirt, hopeful, holding a phone with a job app" },
+    { id: "warehouse-associate", name: "Warehouse associate", description: "Warehouse worker in safety vest and helmet, proud and capable" },
+    { id: "hr-manager", name: "HR manager", description: "HR manager in their 40s, business attire, welcoming handshake" },
+    { id: "security-guard-staff", name: "Deployed staff member", description: "Uniformed facility staff member, smart and professional" },
+  ],
+  scenes: [
+    { id: "modern-office", name: "Modern office", description: "Open-plan office with glass meeting rooms, daylight" },
+    { id: "warehouse-floor", name: "Warehouse floor", description: "Organised logistics warehouse, racks, forklifts, safety markings" },
+    { id: "interview-room", name: "Interview room", description: "Friendly interview room, two chairs, plants, soft light" },
+  ],
+  templates: [
+    {
+      id: "hiring-drive",
+      name: "Walk-in hiring drive",
+      goal: "recruitment",
+      description: "Attract candidates for open roles.",
+      brief: "Announce hiring for {{product}} roles for {{audience}} in {{city}}. Highlight: {{offer}}.",
+      variables: [v.product("e.g. Warehouse associate"), v.audience("e.g. 12th pass and above"), v.city(), v.offer("e.g. ₹18,000/month + PF + free shuttle")],
+      structure: ["Hook: 'Looking for a job?'", "Show the role and workplace", "Benefits list", "How to apply / walk-in details", "CTA"],
+      defaultCta: "Apply now",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["job-seeker", "warehouse-associate"],
+      suggestedSceneId: "warehouse-floor",
+    },
+    {
+      id: "employer-solutions",
+      name: "Staffing for employers",
+      goal: "lead-generation",
+      description: "B2B pitch to HR and operations leaders.",
+      brief: "Pitch {{product}} to {{audience}}. Emphasise speed and compliance: {{offer}}.",
+      variables: [v.product("e.g. Contract staffing"), v.audience("e.g. operations heads in manufacturing"), v.offer("e.g. Verified staff deployed in 48 hours")],
+      structure: ["Hook: urgent staffing gap", "We source, verify, deploy", "Proof: speed & compliance", "CTA"],
+      defaultCta: "Request staff",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["hr-manager", "security-guard-staff"],
+      suggestedSceneId: "modern-office",
+    },
+    {
+      id: "candidate-success",
+      name: "Candidate success story",
+      goal: "recruitment",
+      description: "From job search to first day.",
+      brief: "Tell a short success story of a candidate who got placed through {{product}}. Highlight: {{offer}}.",
+      variables: [v.product("e.g. our job app"), v.offer("e.g. 10,000+ placements this year")],
+      structure: ["Hook: searching for work", "Interview moment", "First day at work, proud", "CTA"],
+      defaultCta: "Download the app",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["job-seeker", "hr-manager"],
+      suggestedSceneId: "interview-room",
+    },
+  ],
+  compliance: {
+    disclaimer: "We never charge candidates a fee for placement.",
+    rules: [
+      "No discrimination by gender, religion, caste, age or appearance; show diverse candidates.",
+      "Salaries and benefits must come only from the offer text - never invent figures.",
+      "Never ask candidates for payment.",
+    ],
+  },
+});

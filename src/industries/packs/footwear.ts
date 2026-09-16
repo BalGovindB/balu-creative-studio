@@ -1,0 +1,67 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "footwear",
+  name: "Shoes & Footwear",
+  emoji: "👟",
+  description: "Sneaker drops, comfort wear, sports and festive collections.",
+  audience: "Style-conscious youth, runners, office-goers",
+  tone: "Bold, confident, rhythmic. Movement-driven.",
+  visualStyle: "Low-angle dynamic shots, street and studio contrast, crisp product detail, motion blur, punchy colour grading",
+  characters: [
+    { id: "street-dancer", name: "Street dancer", description: "Dancer in their early 20s, oversized streetwear, expressive pose, focus on sneakers" },
+    { id: "runner", name: "Runner", description: "Athletic runner in performance wear, determined, mid-stride" },
+    { id: "office-commuter", name: "Office commuter", description: "Professional in their 30s, formal-casual outfit, walking briskly in loafers" },
+  ],
+  scenes: [
+    { id: "urban-street", name: "Urban street", description: "Graffiti wall, city street at dusk, neon reflections on wet ground" },
+    { id: "studio-turntable", name: "Studio turntable", description: "Seamless coloured studio backdrop with a rotating product pedestal" },
+    { id: "running-track", name: "Running track", description: "Stadium running track at sunrise, long shadows" },
+  ],
+  templates: [
+    {
+      id: "product-drop",
+      name: "New drop / launch",
+      goal: "awareness",
+      description: "Hype reveal of a new model.",
+      brief: "Reveal {{product}} to {{audience}} with high energy. Launch hook: {{offer}}.",
+      variables: [v.product("e.g. AirFlex Runner 2"), v.audience("e.g. sneakerheads aged 18-30"), v.offer("e.g. Drops Friday 7PM")],
+      structure: ["Hook: extreme close-up detail", "Rotating hero reveal", "In motion on the street", "Drop date / CTA"],
+      defaultCta: "Shop the drop",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["street-dancer"],
+      suggestedSceneId: "studio-turntable",
+    },
+    {
+      id: "comfort-all-day",
+      name: "All-day comfort",
+      goal: "conversion",
+      description: "Comfort benefit across a full day.",
+      brief: "Show {{product}} keeping {{audience}} comfortable from morning to night. Offer: {{offer}}.",
+      variables: [v.product("e.g. CloudStep Loafers"), v.audience("e.g. office commuters"), v.offer("e.g. Flat 30% off")],
+      structure: ["Hook: morning rush", "Commute and meetings", "Still comfortable at night", "CTA with offer"],
+      defaultCta: "Buy now",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["office-commuter"],
+      suggestedSceneId: "urban-street",
+    },
+    {
+      id: "sale-countdown",
+      name: "Sale countdown",
+      goal: "conversion",
+      description: "Urgency-led sale creative.",
+      brief: "Drive urgency for the {{product}} sale among {{audience}}: {{offer}}.",
+      variables: [v.product("e.g. Sports collection"), v.audience("e.g. runners and gym-goers"), v.offer("e.g. Up to 50% off, ends Sunday")],
+      structure: ["Hook: countdown", "Quick-cut product montage", "Offer punch", "CTA"],
+      defaultCta: "Shop the sale",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["runner"],
+      suggestedSceneId: "running-track",
+    },
+  ],
+  compliance: {
+    disclaimer: "Offer valid while stocks last. T&C apply.",
+    rules: ["Do not make medical or orthopaedic claims unless given in the offer text.", "Do not show competitor logos or products."],
+  },
+});

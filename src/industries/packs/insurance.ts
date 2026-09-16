@@ -1,0 +1,72 @@
+import { defineIndustry } from "../define";
+import { ALL_ENGINES, v } from "./shared";
+
+export default defineIndustry({
+  id: "insurance",
+  name: "Insurance",
+  emoji: "🛡️",
+  description: "Health, life, motor and home cover - trust-first storytelling.",
+  audience: "Young families, first-time policy buyers, vehicle owners",
+  tone: "Warm, reassuring, plain-spoken. Empathy before features.",
+  visualStyle: "Soft natural light, warm family moments, clean modern interiors, cinematic shallow depth of field",
+  characters: [
+    { id: "young-parent", name: "Young parent", description: "Parent in their early 30s, casual smart clothes, kind expression, holding a child's hand" },
+    { id: "advisor", name: "Insurance advisor", description: "Friendly advisor in their 40s, neat business-casual attire, holding a tablet, approachable smile" },
+    { id: "senior-couple", name: "Senior couple", description: "Couple in their 60s, comfortable traditional-modern clothing, relaxed and content" },
+    { id: "car-owner", name: "Car owner", description: "Professional in their late 20s beside a new hatchback, confident, casual jacket" },
+  ],
+  scenes: [
+    { id: "family-home", name: "Family living room", description: "Bright modern living room, sofa, family photos, afternoon sunlight" },
+    { id: "hospital-reception", name: "Clean hospital lobby", description: "Calm, well-lit hospital reception, cashless desk, no distress" },
+    { id: "city-road", name: "City road", description: "Busy but orderly city street, parked cars, golden hour" },
+  ],
+  templates: [
+    {
+      id: "health-cover-awareness",
+      name: "Health cover - why now",
+      goal: "awareness",
+      description: "Show the peace of mind of being covered before a medical need arises.",
+      brief: "Promote {{product}} to {{audience}}. Show a family living fully because medical costs are covered. Highlight: {{offer}}.",
+      variables: [v.product("e.g. FamilyCare Health Plan"), v.audience("e.g. young families"), v.offer("e.g. Cashless at 10,000+ hospitals")],
+      structure: ["Hook: a relatable everyday family moment", "Tension: an unexpected medical bill (shown gently)", "Relief: plan covers it, cashless", "Benefit highlight", "CTA"],
+      defaultCta: "Get a free quote today",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["young-parent", "advisor"],
+      suggestedSceneId: "family-home",
+    },
+    {
+      id: "motor-renewal",
+      name: "Motor policy renewal reminder",
+      goal: "retention",
+      description: "Nudge vehicle owners to renew before expiry.",
+      brief: "Remind {{audience}} to renew {{product}} before it expires. Emphasise speed and simplicity. Offer: {{offer}}.",
+      variables: [v.product("e.g. Car Insurance"), v.audience("e.g. car owners with policies expiring this month"), v.offer("e.g. Renew in 2 minutes, keep your no-claim bonus")],
+      structure: ["Hook: calendar/expiry moment", "Risk of lapse (light touch)", "Renew in a few taps", "CTA"],
+      defaultCta: "Renew in 2 minutes",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["car-owner"],
+      suggestedSceneId: "city-road",
+    },
+    {
+      id: "term-life-protection",
+      name: "Term life - protect your family",
+      goal: "lead-generation",
+      description: "Emotional protection story for term life cover.",
+      brief: "Generate leads for {{product}} among {{audience}}. Show a parent securing their family's future. Highlight: {{offer}}.",
+      variables: [v.product("e.g. SecureLife Term Plan"), v.audience("e.g. earning parents aged 25-45"), v.offer("e.g. ₹1 Cr cover from ₹20/day")],
+      structure: ["Hook: a milestone family moment", "Question: who protects this if you can't?", "Advisor explains simply", "Family secure", "CTA"],
+      defaultCta: "Talk to an advisor",
+      engines: ALL_ENGINES,
+      suggestedCharacterIds: ["young-parent", "advisor", "senior-couple"],
+      suggestedSceneId: "family-home",
+    },
+  ],
+  compliance: {
+    disclaimer: "Insurance is the subject matter of solicitation. Read policy terms carefully before buying.",
+    rules: [
+      "Never promise guaranteed returns or guaranteed claim approval.",
+      "Do not use fear, accidents with injuries, or death imagery.",
+      "Premium or cover figures must come from the provided offer text only - never invent numbers.",
+    ],
+  },
+});
