@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { generationRequestSchema } from "@/core/validation";
 import { resolveTemplate } from "@/industries";
 import { runGeneration, stepNamesFor } from "@/pipeline/run";
@@ -36,7 +36,14 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const job = createJob(generationRequest, stepNamesFor(generationRequest.engine));
-  // Deliberately not awaited: the pipeline reports progress through the job store.
-  void runGeneration(job.id, generationRequest);
+  // In serverless environments (Vercel), background promises freeze upon response return unless
+  // scheduled with after() to keep the execution context alive until completion.
+  after(async () => {
+    try {
+      await runGeneration(job.id, generationRequest);
+    } catch (err) {
+      console.error(`[generate] Job ${job.id} background execution error:`, err);
+    }
+  });
   return NextResponse.json({ job }, { status: 202 });
 }

@@ -1,11 +1,40 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import ffmpegStatic from "ffmpeg-static";
 
+let resolvedFfmpegPath: string | null = null;
+
 export function ffmpegPath(): string {
+  if (resolvedFfmpegPath) return resolvedFfmpegPath;
+
   const configured = process.env.FFMPEG_PATH?.trim();
-  if (configured) return configured;
-  if (ffmpegStatic && existsSync(ffmpegStatic)) return ffmpegStatic;
+  if (configured) {
+    resolvedFfmpegPath = configured;
+    return configured;
+  }
+
+  if (ffmpegStatic && existsSync(ffmpegStatic)) {
+    // In serverless environments (e.g. Vercel, AWS Lambda), binaries in node_modules may lack
+    // execute permissions. Copying to /tmp and running chmod 0755 guarantees executable rights.
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+      try {
+        const dest = path.join(tmpdir(), "ffmpeg");
+        if (!existsSync(dest)) {
+          copyFileSync(ffmpegStatic, dest);
+          chmodSync(dest, 0o755);
+        }
+        resolvedFfmpegPath = dest;
+        return dest;
+      } catch (err) {
+        console.warn("[balu] Could not prepare ffmpeg in /tmp, using default binary:", err);
+      }
+    }
+    resolvedFfmpegPath = ffmpegStatic;
+    return ffmpegStatic;
+  }
+
   return "ffmpeg"; // hope it's on PATH
 }
 
@@ -18,7 +47,7 @@ export interface FfmpegOptions {
 
 export function runFfmpeg(args: string[], { cwd, timeoutMs = 10 * 60_000 }: FfmpegOptions): Promise<void> {
   return new Promise((resolve, reject) => {
-    const child = spawn(ffmpegPath(), ["-hide_banner", "-loglevel", "error", "-y", ...args], {
+    const child = spawn(/* turbopackIgnore: true */ ffmpegPath(), ["-hide_banner", "-loglevel", "error", "-y", ...args], {
       cwd,
       windowsHide: true,
     });

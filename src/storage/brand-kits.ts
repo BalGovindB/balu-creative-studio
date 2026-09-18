@@ -85,12 +85,24 @@ export function getBrandKit(id: string): BrandKit | undefined {
 }
 
 export function listBrandKits(): BrandKit[] {
-  const dir = rootDir();
-  return readdirSync(dir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => getBrandKit(entry.name))
-    .filter((kit): kit is BrandKit => Boolean(kit))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const dir = storagePath("brand-kits");
+  if (!existsSync(dir)) {
+    try {
+      ensureDir(dir);
+    } catch {
+      return [];
+    }
+  }
+  if (!existsSync(dir)) return [];
+  try {
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => getBrandKit(entry.name))
+      .filter((kit): kit is BrandKit => Boolean(kit))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
 }
 
 /** Absolute path of the kit's font file, if it has one. */
@@ -98,6 +110,7 @@ export function brandFontPath(kit: BrandKit | undefined): string | undefined {
   if (!kit?.fontFile) return undefined;
   const dir = brandKitDir(kit.id);
   if (!dir) return undefined;
-  const file = path.join(dir, kit.fontFile);
-  return existsSync(file) ? file : undefined;
+  const file = path.join(/* turbopackIgnore: true */ dir, kit.fontFile);
+  return existsSync(/* turbopackIgnore: true */ file) ? file : undefined;
 }
+
