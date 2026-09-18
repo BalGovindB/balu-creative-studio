@@ -1,5 +1,7 @@
 import { copyFileSync, existsSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
+import { DEFAULT_FONT_BASE64 } from "../assets/fonts/defaultFontBase64";
 
 const SYSTEM_FONTS = [
   "C:/Windows/Fonts/arialbd.ttf",
@@ -12,12 +14,31 @@ const SYSTEM_FONTS = [
   "/Library/Fonts/Arial.ttf",
 ];
 
+let embeddedFontPath: string | null = null;
+
 export function resolveFont(preferred?: string): string {
   const candidates = [preferred, process.env.DEFAULT_FONT_PATH?.trim(), ...SYSTEM_FONTS];
   for (const candidate of candidates) {
     if (candidate && existsSync(candidate)) return candidate;
   }
-  throw new Error("No usable font found. Upload a brand font or set DEFAULT_FONT_PATH to a .ttf/.otf file.");
+
+  // Guaranteed serverless fallback: materialize embedded base64 font into tmpdir
+  if (embeddedFontPath && existsSync(embeddedFontPath)) {
+    return embeddedFontPath;
+  }
+
+  try {
+    const dest = path.join(tmpdir(), "balu-default-font.ttf");
+    if (!existsSync(dest)) {
+      writeFileSync(dest, Buffer.from(DEFAULT_FONT_BASE64, "base64"));
+    }
+    embeddedFontPath = dest;
+    return dest;
+  } catch (err) {
+    console.error("[balu] Failed to write embedded font to tmp:", err);
+  }
+
+  return "";
 }
 
 /** "#1a2b3c" -> "0x1a2b3c" for ffmpeg colour options. */
@@ -63,16 +84,30 @@ export interface TextBlock {
  * drawtext so lines stay individually centred; text goes through files so no escaping
  * of quotes, colons or commas is needed.
  */
+import { hasDrawtextSupport } from "./ffmpeg";
+
 export class TextRenderer {
   private counter = 0;
   readonly fontFile: string;
 
-  constructor(private readonly workDir: string, fontPath: string, key = "font") {
-    this.fontFile = `${key}${path.extname(fontPath) || ".ttf"}`;
-    copyFileSync(fontPath, path.join(workDir, this.fontFile));
+  constructor(private readonly workDir: string, fontPath?: string, key = "font") {
+    if (fontPath && existsSync(fontPath)) {
+      this.fontFile = `${key}${path.extname(fontPath) || ".ttf"}`;
+      try {
+        copyFileSync(fontPath, path.join(workDir, this.fontFile));
+      } catch {
+        this.fontFile = "";
+      }
+    } else {
+      this.fontFile = "";
+    }
   }
 
   block(b: TextBlock): string[] {
+    if (!hasDrawtextSupport() || !this.fontFile) {
+      return [];
+    }
+
     // Average glyph width is roughly half the font size for Latin sans-serif faces.
     const maxChars = Math.max(8, Math.floor(b.maxWidth / (b.fontSize * 0.55)));
     let lines = wrapText(b.text, maxChars);

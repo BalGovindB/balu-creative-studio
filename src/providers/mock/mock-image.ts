@@ -52,7 +52,8 @@ export class MockImageProvider implements ImageProvider {
     });
 
     const script = `${path.basename(input.outputBase)}.graph`;
-    writeFileSync(path.join(workDir, script), `[0:v]vignette=PI/9,${label.join(",")},format=rgb24[out]`);
+    const filterChain = ["vignette=PI/9", ...label, "format=rgb24"].filter(Boolean).join(",");
+    writeFileSync(path.join(workDir, script), `[0:v]${filterChain}[out]`);
     await runFfmpeg(
       [
         "-f",

@@ -16,24 +16,42 @@ const STEP_ICONS: Record<JobStep["status"], string> = {
 };
 
 /** Live view of one generation job: steps, intermediate frames and the finished exports. */
-export default function JobPanel({ jobId }: { jobId: string | null }) {
-  const [job, setJob] = useState<Job | null>(null);
+export default function JobPanel({ jobId, liveJob }: { jobId: string | null; liveJob?: Job | null }) {
+  const [job, setJob] = useState<Job | null>(liveJob ?? null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!jobId) {
-      setJob(null);
+    if (liveJob) {
+      setJob(liveJob);
+      setError(liveJob.error ?? null);
+    }
+  }, [liveJob]);
+
+  useEffect(() => {
+    // If live streamed job updates are being received, skip polling
+    if (!jobId || liveJob) {
+      if (!jobId && !liveJob) setJob(null);
       return;
     }
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let retries = 0;
 
     async function poll() {
       try {
         const response = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
         const body = (await response.json()) as { job?: Job; error?: string };
         if (cancelled) return;
-        if (!response.ok || !body.job) throw new Error(body.error ?? "Job not found.");
+        if (!response.ok || !body.job) {
+          retries++;
+          // Allow several retry attempts while the job initializes
+          if (retries < 8) {
+            timer = setTimeout(poll, POLL_MS);
+            return;
+          }
+          throw new Error(body.error ?? "Job not found.");
+        }
+        retries = 0;
         setJob(body.job);
         setError(null);
         // Stop polling once the pipeline has settled either way.

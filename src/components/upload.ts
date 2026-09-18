@@ -7,6 +7,9 @@ export interface UploadedAsset {
 
 /** URL for anything stored under the storage root. */
 export function fileUrl(storagePath: string, download = false): string {
+  if (storagePath.startsWith("data:") || storagePath.startsWith("http://") || storagePath.startsWith("https://")) {
+    return storagePath;
+  }
   return `/api/files/${storagePath.split("/").map(encodeURIComponent).join("/")}${download ? "?download=1" : ""}`;
 }
 

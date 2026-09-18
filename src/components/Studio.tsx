@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ASPECT_RATIOS, DURATION_LIMITS, FORMATS } from "@/core/formats";
-import type { AspectRatio, BrandKit, CharacterSpec, Engine, InputMode, ReframeMode, SceneSpec } from "@/core/types";
+import type { AspectRatio, BrandKit, CharacterSpec, Engine, InputMode, Job, ReframeMode, SceneSpec } from "@/core/types";
 import type { IndustryPack, UseCaseTemplate } from "@/industries/types";
 import BrandKitPanel from "./BrandKitPanel";
 import JobPanel from "./JobPanel";
@@ -64,6 +64,7 @@ export default function Studio({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [currentJob, setCurrentJob] = useState<Job | null>(null);
 
   const pack = industries.find((p) => p.id === industryId) ?? firstPack;
   const template = pack.templates.find((t) => t.id === templateId) ?? pack.templates[0];
@@ -138,10 +139,12 @@ export default function Studio({
   async function generate() {
     setError(null);
     setSubmitting(true);
+    setCurrentJob(null);
+    setJobId(null);
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Accept": "text/event-stream, application/json" },
         body: JSON.stringify({
           engine,
           inputMode,
@@ -164,9 +167,46 @@ export default function Studio({
           durationSec,
         }),
       });
-      const body = (await response.json()) as { job?: { id: string }; error?: string };
-      if (!response.ok || !body.job) throw new Error(body.error ?? "Generation could not be started.");
-      setJobId(body.job.id);
+
+      if (!response.ok) {
+        let errMessage = "Generation could not be started.";
+        try {
+          const body = await response.json();
+          if (body.error) errMessage = body.error;
+        } catch {}
+        throw new Error(errMessage);
+      }
+
+      // Check if response is an SSE stream
+      const contentType = response.headers.get("content-type") ?? "";
+      if (response.body && contentType.includes("text/event-stream")) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() ?? "";
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (trimmed.startsWith("data: ")) {
+              try {
+                const liveJob = JSON.parse(trimmed.slice(6)) as Job;
+                setCurrentJob(liveJob);
+                setJobId(liveJob.id);
+              } catch {}
+            }
+          }
+        }
+      } else {
+        const body = (await response.json()) as { job?: Job; error?: string };
+        if (!body.job) throw new Error(body.error ?? "Generation could not be started.");
+        setCurrentJob(body.job);
+        setJobId(body.job.id);
+      }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Generation could not be started.");
     } finally {
@@ -569,7 +609,7 @@ export default function Studio({
         </div>
 
         <div className="sticky">
-          <JobPanel jobId={jobId} />
+          <JobPanel jobId={jobId} liveJob={currentJob} />
         </div>
       </div>
     </div>

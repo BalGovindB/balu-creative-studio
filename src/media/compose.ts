@@ -26,6 +26,7 @@ export async function normalizeClip(opts: {
     `tpad=stop_mode=clone:stop_duration=${d.toFixed(2)}`,
     `trim=duration=${d.toFixed(3)}`,
     "setpts=PTS-STARTPTS",
+    `fps=${FPS}`,
     "setsar=1",
     "format=yuv420p",
   ].join(",");
@@ -303,8 +304,8 @@ export async function renderFormat(o: RenderOptions): Promise<void> {
       g.push(`[endbg][logo_b]overlay=(W-w)/2:H*0.3-h/2:shortest=1[endlogo]`);
       endCur = "[endlogo]";
     }
-    g.push(`${endCur}${ecFilters.join(",")},setsar=1,format=yuv420p[endcard]`);
-    g.push(`${main}format=yuv420p,trim=duration=${o.contentDurationSec.toFixed(3)},setpts=PTS-STARTPTS[maintrim]`);
+    g.push(`${endCur}${ecFilters.length ? ecFilters.join(",") + "," : ""}setsar=1,fps=${FPS},format=yuv420p[endcard]`);
+    g.push(`${main}format=yuv420p,trim=duration=${o.contentDurationSec.toFixed(3)},setpts=PTS-STARTPTS,fps=${FPS}[maintrim]`);
     const offset = Math.max(0, o.contentDurationSec - ec.fadeSec);
     g.push(`[maintrim][endcard]xfade=transition=fade:duration=${ec.fadeSec}:offset=${offset.toFixed(3)}[final]`);
     final = "[final]";

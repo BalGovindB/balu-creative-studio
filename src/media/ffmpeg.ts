@@ -5,6 +5,19 @@ import path from "node:path";
 import ffmpegStatic from "ffmpeg-static";
 
 let resolvedFfmpegPath: string | null = null;
+let drawtextSupported: boolean | null = null;
+
+export function hasDrawtextSupport(): boolean {
+  if (drawtextSupported !== null) return drawtextSupported;
+  try {
+    const { execSync } = require("node:child_process");
+    const out = execSync(`${ffmpegPath()} -filters`, { windowsHide: true, timeout: 5000 }).toString();
+    drawtextSupported = out.includes("drawtext");
+  } catch {
+    drawtextSupported = false;
+  }
+  return drawtextSupported ?? false;
+}
 
 export function ffmpegPath(): string {
   if (resolvedFfmpegPath) return resolvedFfmpegPath;

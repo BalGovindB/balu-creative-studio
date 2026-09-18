@@ -19,8 +19,12 @@ function jobFile(id: string): string {
 }
 
 function persist(job: Job): void {
-  ensureDir(jobDir(job.id));
-  writeFileSync(jobFile(job.id), JSON.stringify(job, null, 2), "utf8");
+  try {
+    ensureDir(jobDir(job.id));
+    writeFileSync(jobFile(job.id), JSON.stringify(job, null, 2), "utf8");
+  } catch (err) {
+    console.error(`[jobs] Failed to persist job ${job.id}:`, err);
+  }
 }
 
 export function createJob(request: GenerationRequest, steps: string[]): Job {
@@ -58,12 +62,36 @@ export function getJob(id: string): Job | undefined {
   }
 }
 
+type JobListener = (job: Job) => void;
+const jobListeners = new Map<string, Set<JobListener>>();
+
+export function subscribeToJob(id: string, listener: JobListener): () => void {
+  let listeners = jobListeners.get(id);
+  if (!listeners) {
+    listeners = new Set();
+    jobListeners.set(id, listeners);
+  }
+  listeners.add(listener);
+  return () => {
+    listeners?.delete(listener);
+    if (listeners && listeners.size === 0) jobListeners.delete(id);
+  };
+}
+
 function update(id: string, mutate: (job: Job) => void): Job | undefined {
   const job = getJob(id);
   if (!job) return undefined;
   mutate(job);
   job.updatedAt = new Date().toISOString();
   persist(job);
+  const listeners = jobListeners.get(id);
+  if (listeners) {
+    for (const listener of listeners) {
+      try {
+        listener(job);
+      } catch {}
+    }
+  }
   return job;
 }
 
@@ -147,7 +175,18 @@ export class JobReporter {
 
   addPreview(label: string, absolutePath: string): void {
     update(this.id, (job) => {
-      job.previews.push({ label, path: toStorageRelative(absolutePath) });
+      let previewPath = toStorageRelative(absolutePath);
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        try {
+          if (existsSync(absolutePath)) {
+            const buf = readFileSync(absolutePath);
+            const ext = path.extname(absolutePath).toLowerCase();
+            const mime = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
+            previewPath = `data:${mime};base64,${buf.toString("base64")}`;
+          }
+        } catch {}
+      }
+      job.previews.push({ label, path: previewPath });
     });
   }
 
@@ -159,7 +198,19 @@ export class JobReporter {
 
   addOutput(output: OutputFile): void {
     update(this.id, (job) => {
-      job.outputs.push(output);
+      let outputPath = output.path;
+      if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        try {
+          const abs = storagePath(output.path);
+          if (existsSync(abs)) {
+            const buf = readFileSync(abs);
+            const ext = path.extname(abs).toLowerCase();
+            const mime = ext === ".mp4" ? "video/mp4" : ext === ".gif" ? "image/gif" : ext === ".webp" ? "image/webp" : "image/png";
+            outputPath = `data:${mime};base64,${buf.toString("base64")}`;
+          }
+        } catch {}
+      }
+      job.outputs.push({ ...output, path: outputPath });
     });
   }
 

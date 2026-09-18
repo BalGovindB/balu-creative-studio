@@ -8,14 +8,19 @@ import path from "node:path";
  * through a single guarded route (/api/files).
  */
 export function storageRoot(): string {
+  // In serverless environments (Vercel, AWS Lambda), the workspace filesystem is read-only.
+  // We MUST use /tmp (or an explicit path inside /tmp) so file creation succeeds.
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const configured = process.env.STORAGE_DIR?.trim();
+    if (configured && path.isAbsolute(configured) && configured.startsWith(tmpdir())) {
+      return configured;
+    }
+    return path.join(tmpdir(), "balu-storage");
+  }
+
   const configured = process.env.STORAGE_DIR?.trim();
   if (configured) {
     return path.resolve(/* turbopackIgnore: true */ process.cwd(), configured);
-  }
-  // In serverless environments (Vercel, AWS Lambda), the workspace filesystem is read-only.
-  // We fall back to the system temporary directory so write operations succeed.
-  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    return path.join(tmpdir(), "balu-storage");
   }
   return path.resolve(/* turbopackIgnore: true */ process.cwd(), "./storage");
 }
